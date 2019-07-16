@@ -1,14 +1,49 @@
-# Main conversion script.
+Function Convert-LBFO2Set {
+<#
+    .SYNOPSIS
+        This is the synopsis
 
+    .DESCRIPTION
+        This is the description
+
+    .PARAMETER param1
+        Description of Param1
+
+    .PARAMETER param2
+        Description of Param1
+
+    .EXAMPLE
+        Convert-LBFO2Set -Param1 xyz
+
+    .EXAMPLE
+        Convert-LBFO2Set -Param1 xyz -Param2
+
+    .NOTES
+        Author: Microsoft Core Networking team and the Networking Blackbelts
+
+        Please file issues on GitHub @ GitHub.com/Microsoft/Convert-LBFO2SET
+
+    .LINK
+        More projects               : https://github.com/topics/msftnet
+        Windows Networking Blog     : https://blogs.technet.microsoft.com/networking/
+#>
+
+    $here = Split-Path -Parent $PSScriptRoot
+
+    $ValidationResults = Invoke-Pester -Script "$here\tests\unit\unit.tests.ps1" -PassThru
+    $ValidationResults | Select-Object -Property TagFilter, Time, TotalCount, PassedCount, FailedCount, SkippedCount, PendingCount | Format-Table -AutoSize
+
+    If ($ValidationResults.FailedCount -ne 0) { Write-Host 'Prerequisite checks have failed.' ; Break }
+
+
+}
+
+# Main conversion script.
+<#
 #requires -Version 5.1
 #requires -RunAsAdministrator
 #requires -Modules NetLbfo
-
-<#
-HELP SECTION
-
 #>
-
 <#
 To-do
 
@@ -34,14 +69,12 @@ To-do
 ######################
 
 param (
-
-
     [string]$Path = "$PSScriptRoot",
 
-    
     # Overrides whatever the current Load Balance algorithm is and uses Hyper-V Port in the SET team. Needed for automation purposes to bypass the prompt.
     [switch]$useHyperVPort,
 
+    # TODO: [DC] Let's discuss this; it's probably wiser just to warn/prompt since this requires a reboot etc.
     # Forces a Hyper-V installation, if not already installed. This will reboot the server automatically after 60 seconds.
     [switch]$forceHyperVInstall
 )
@@ -65,7 +98,7 @@ $script:logName = "Convert-Lbfo2Set_log.log"
 [array]$badTM = "Static", "LACP"
 
 # collect the current LBFO state
-[array]$LBFO = Get-NetLbfoTeam 
+[array]$LBFO = Get-NetLbfoTeam
 
 #endregion
 
@@ -78,7 +111,7 @@ $script:logName = "Convert-Lbfo2Set_log.log"
 # FUNCTION: Get-TimeStamp
 # PURPOSE:  Returns a timestamp string
 
-function Get-TimeStamp 
+function Get-TimeStamp
 {
     return "$(Get-Date -format "yyyyMMdd_HHmmss_ffff")"
 } # end Get-TimeStamp
@@ -99,7 +132,7 @@ function Write-Log {
         "$(Get-TimeStamp): Local log file path: $("$script:dataPath\$script:logName")" | Out-File "$script:dataPath\$script:logName" -Force
         Write-Verbose "Local log file path: $("$script:dataPath\$script:logName")"
     }
-    
+
     # write to log
     "$(Get-TimeStamp): $text" | Out-File "$script:dataPath\$script:logName" -Append
 
@@ -114,7 +147,7 @@ function Write-Log {
             Write-Host -ForegroundColor $foreColor $text
         } else {
             Write-Host $text
-        }        
+        }
     }
 } # end Write-Log
 
@@ -125,7 +158,7 @@ function Write-Log {
 # $options are an array of hashtables contaning a label and a helpMessage.
 # Example: (@{Label="First Option";  helpMessage="Something helpful."}, @{Label="Second Option";  helpMessage="More help."})
 #
-# Output is the 
+# Output is the
 
 function New-TextMenu
 {
@@ -188,7 +221,7 @@ Please quit if testing is needed before converting to Hyper-V Port.
 
 S - Switch to Hyper-V Port
 Q - Quit
-        
+
 "@
 
         $Local:options = @{Label="S - Switch to Hyper-V Port";  helpMessage="Continue converting LBFO to SET and switch to the Hyper-V Port algorithm."}
@@ -216,11 +249,11 @@ $isDPFnd = Get-Item $script:dataPath -EA SilentlyContinue
 if (!$isDPFnd)
 {
     # try to create it
-    try 
+    try
     {
         New-Item -Path $script:dataPath -ItemType Directory -Force -EA Stop | Write-Log
     }
-    catch 
+    catch
     {
         throw ("Could not create the data path. This is needed for backing up the current configuration and logging. Error: $($error[0].ToString())")
     }
@@ -234,18 +267,18 @@ if (!$forceHyperVInstall -and !$isNvmsFnd)
     # need to install Hyper-V role. Prompt first.
     $Local:message = @"
 A pre-requisite check has failed: The Hyper-V role is not installed.
-The Hyper-V role is needed to configure SET. You do not need to use Hyper-V, 
-but it must be installed. 
+The Hyper-V role is needed to configure SET. You do not need to use Hyper-V,
+but it must be installed.
 
-Installing Hyper-V requires a reboot, and the same user must logon post-reboot 
-for the installation to complete. The process is handled by the script with a 
+Installing Hyper-V requires a reboot, and the same user must logon post-reboot
+for the installation to complete. The process is handled by the script with a
 60 seconds delay before the reboot.
 
 Please rerun the script after the reboot.
 
 I - Install Hyper-V (reboot required)
 Q - Quit
-        
+
 "@
 
         $Local:options = @{Label="I - Install Hyper-V (reboot required)";  helpMessage="Install the Hyper-V role and reboot."}
@@ -256,11 +289,11 @@ Q - Quit
         {
             # install Hyper-V and reboot
             0 {
-                try 
+                try
                 {
                     Install-WindowsFeature Hyper-V -IncludeAllSubFeature -IncludeManagementTools -Confirm:$false -ErrorAction Stop
                 }
-                catch 
+                catch
                 {
                     throw ("The Hyper-V installation failed. Error: $($Error[0].ToString())")
                 }
@@ -275,11 +308,11 @@ Q - Quit
         }
 } elseif ($forceHyperVInstall -and !$isNvmsFnd)
 {
-    try 
+    try
     {
         Install-WindowsFeature Hyper-V -IncludeAllSubFeature -IncludeManagementTools -Confirm:$false -ErrorAction Stop
     }
-    catch 
+    catch
     {
         throw ("The Hyper-V installation failed. Error: $($Error[0].ToString())")
     }
@@ -296,11 +329,11 @@ Q - Quit
 ######################
 
 # backup the LBFO details to file
-try 
+try
 {
-    $LBFO | Format-List * | Out-String | Out-File -FilePath "$script:dataPath\LBFO_settings.txt" -Force -EA Stop    
+    $LBFO | Format-List * | Out-String | Out-File -FilePath "$script:dataPath\LBFO_settings.txt" -Force -EA Stop
 }
-catch 
+catch
 {
     throw ("Could not backup the LBFO settings. Error: $($error[0].ToString())")
 }
