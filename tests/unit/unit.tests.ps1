@@ -1,5 +1,5 @@
-Describe 'Convert-LBFO2SET' {
-    Context PreValidation {
+Describe 'OSValidation' -Tag PreValidation {
+    Context HostOS {
         $NodeOS = Get-CimInstance -ClassName 'Win32_OperatingSystem'
 
         ### Verify the Host is sufficient version
@@ -7,16 +7,23 @@ Describe 'Convert-LBFO2SET' {
             $NodeOS.Caption | Should be ($NodeOS.Caption -like '*Windows Server 2016*' -or $NodeOS.Caption -like '*Windows Server 2019*')
         }
 
-        $HyperVInstallation = (Get-WindowsFeature -Name Hyper-V -ComputerName $system).InstallState
-        $VMSwitch = Get-VMSwitch -Name $VirtualSwitch -CimSession $system -ErrorAction SilentlyContinue
+        $HyperVInstallation = (Get-WindowsFeature -Name Hyper-V -ComputerName $env:ComputerName -ErrorAction SilentlyContinue).InstallState
 
         It "${env:ComputerName} must have Hyper-V installed" {
             $HyperVInstallation | Should be 'Installed'
         }
 
-        It "The virtual switch [$VirtualSwitch] should exist on the Hyper-V Host [$system]" {
-            $VMSwitch | Should not BeNullOrEmpty
+        If ($AllowOutage -eq $false) {
+            It "$LBFOTeam should have at least two adapters" {
+                $configData.NetLBFOTeam.Members.Count | Should BeGreaterThan 1
+            }
         }
+    }
+}
+
+
+Describe 'SETTeam' {
+    Context SETTeam {
 
         It "The virtual switch [$VirtualSwitch] should have SR-IOV enabled" {
             $VMSwitch.IovEnabled | Should be $true
