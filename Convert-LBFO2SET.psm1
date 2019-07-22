@@ -141,10 +141,10 @@ $here = Split-Path -Parent (Get-Module -Name Convert-LBFO2SET).Path
             Reset-NetAdapterAdvancedProperty -Name $interface -DisplayName 'NVGRE Encapsulated Task Offload', 'VXLAN Encapsulated Task Offload', 'IPV4 Checksum Offload',
                 'NetworkDirect Technology', 'Recv Segment Coalescing (IPv4)', 'Recv Segment Coalescing (IPv6)',
                 'Maximum number of RSS Processors', 'Maximum Number of RSS Queues', 'RSS Base Processor Number',
-                'Virtual Machine Queues', 'RSS Load Balancing Profile', 'SR-IOV', 'TCP/UDP Checksum Offload (IPv4)', 'TCP/UDP Checksum Offload (IPv6)'
+                'RSS Load Balancing Profile', 'SR-IOV', 'TCP/UDP Checksum Offload (IPv4)', 'TCP/UDP Checksum Offload (IPv6)'
 
             Set-NetAdapterAdvancedProperty -Name $interface -DisplayName 'Packet Direct' -RegistryValue 0
-            Set-NetAdapterAdvancedProperty -Name $interface -RegistryValue 1 -DisplayName 'Receive Side Scaling', 'Virtual Switch RSS', 'NetworkDirect Functionality'
+            Set-NetAdapterAdvancedProperty -Name $interface -RegistryValue 1 -DisplayName 'Receive Side Scaling', 'Virtual Switch RSS', 'Virtual Machine Queues', 'NetworkDirect Functionality'
         }
     }
 }
