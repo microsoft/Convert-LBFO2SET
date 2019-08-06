@@ -13,9 +13,26 @@ Describe 'OSValidation' -Tag PreValidation {
             $HyperVInstallation | Should be 'Installed'
         }
 
+        It "${env:ComputerName} LBFO Team [$LBFOTeam] should already exist" {
+            $configData.NetLBFOTeam | Should Not BeNullOrEmpty
+        }
+
+        It "${env:ComputerName} Teaming mode for LBFO team [$LBFOTeam] should not be LACP" {
+            $configData.NetLBFOTeam.TeamingMode | Should Not Be 'LACP'
+        }
+
         If ($AllowOutage -eq $false) {
             It "$LBFOTeam should have at least two adapters" {
                 $configData.NetLBFOTeam.Members.Count | Should BeGreaterThan 1
+            }
+        }
+
+        $vSwitchExists = Get-VMSwitch -Name $SETTeam -ErrorAction SilentlyContinue
+
+        #TODO: Add to Test condition
+        If ($vSwitchExists) {
+            It "${env:ComputerName} The existing SET Team [$SETTeam] must have teaming enabled" {
+                $vSwitchExists.EmbeddedTeamingEnabled | Should be $true
             }
         }
     }
