@@ -84,6 +84,7 @@ Function Convert-LBFO2Set {
             VMNetworkAdapter  = Get-VMNetworkAdapter -All | Where-Object SwitchName -EQ $configData.LBFOVMSwitch.Name -ErrorAction SilentlyContinue
         }
 
+        <# Temporarily removing till we work through host vNIC migration plan
         # Grabbing additional info for Host vNICs because their migration is a little more complicated.
         foreach ($HostvNIC in $configData.VMNetworkAdapter | Where-Object VMName -eq $Null) {
             $HostvNICNetAdapter = Get-NetAdapter | Where-Object DeviceID -eq $HostvNIC.DeviceId
@@ -92,10 +93,12 @@ Function Convert-LBFO2Set {
                 @{ $($HostvNIC.Name) = @{ HostvNICNetAdapter = $HostvNICNetAdapter }}
             )
         }
+        
 
         $configData += @{ HostvNICs = $HostvNICs }
-
-        Remove-Variable HostvNIC -ErrorAction SilentlyContinue
+        
+        Remove-Variable HostvNIC -ErrorAction SilentlyContinue\
+        #>
     }
     #endregion
 
@@ -146,12 +149,13 @@ Function Convert-LBFO2Set {
 
     Remove-Variable SETTeamParams -ErrorAction SilentlyContinue
     #endregion
-    $vmNICs = ($configData.VMNetworkAdapter | Where VMName -ne $Null)
+    $vmNICs = ($configData.VMNetworkAdapter | Where-Object VMName -ne $Null)
     $vNICMigrationNeeded = If ($vmNICs) { $true } Else { $false }
 
     # TODO: Add vmNIC and Host vNIC to test cases.
     if ($vNICMigrationNeeded) { Connect-VMNetworkAdapter -VMNetworkAdapter $vmNICs -SwitchName $SETTeam -ErrorAction SilentlyContinue }
 
+    <# Temporarily removing till we work through host vNIC migration plan
     Foreach ($HostvNIC in ($configData.VMNetworkAdapter | Where VMName -eq $Null)) {
         Write-Output "Original Name: $($HostvNIC.Name)"
         Write-Output "New Name: $($HostvNIC.Name)-446f776e2057697468204c42464f"
@@ -233,7 +237,7 @@ Function Convert-LBFO2Set {
 
         }
     }
-
+    #>
     #TODO: Add post test validation to make sure there are no more vmNICs attached
     #TODO: Add post test validation to make sure there are no more host vNICs attached
 
@@ -248,11 +252,13 @@ Function Convert-LBFO2Set {
     Add-VMSwitchTeamMember -NetAdapterName $remainingAdapters -VMSwitchName $SETTeam
 
     Remove-Variable HostvNIC
+    <# Temporarily removing till we work through host vNIC migration plan
     foreach ($HostvNIC in ($configData.HostvNICs)) {
         $NewNetAdapterName = $configData.HostvNICs.$($HostvNIC.Keys).HostvNICNetAdapter.Name
 
         Rename-NetAdapter -Name "$NewNetAdapterName-446f776e2057697468204c42464f" -NewName $NewNetAdapterName
     }
+    #>
 #endregion
 
     if ($EnableBestPractices) {
@@ -316,28 +322,11 @@ Function Convert-LBFO2Set {
         Set-VMSwitch @SETSwitchUpdates
         Set-VMSwitchTeam -Name $SETTeam -LoadBalancingAlgorithm HyperVPort
 
+        <# Temporarily removing till we work through host vNIC migration plan
         Set-VMNetworkAdapter @HostvNICUpdates
+        #>
         Set-VMNetworkAdapter @vmNICUpdates
 
         Remove-Variable SETSwitchUpdates, vmNICUpdates, HostvNICUpdates, NodeOSCaption -ErrorAction SilentlyContinue
     }
-}
-
-
-$CPUInfo = Get-CimInstance -ClassName Win32_Processor -Property 'NumberOfCores', 'NumberOfLogicalProcessors'
-
-
-function GetNumCpusPerNUMA()
-{
-    $CPUInfo = @()
-    $cpuInfo += Get-WmiObject -Class win32_processor -Property "numberOfCores"
-    $numcores = $cpuInfo[0].NumberOfCores
-    return $numcores
-}
-
-function GetNumaCount()
-{
-    $cpuInfo = Get-WmiObject -Class win32_processor -Property "numberOfCores"
-    $numaCount = $cpuInfo.Count
-    return $numaCount
 }
