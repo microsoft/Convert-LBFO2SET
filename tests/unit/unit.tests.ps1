@@ -35,6 +35,8 @@ Describe 'OSValidation' -Tag PreValidation {
                 $vSwitchExists.EmbeddedTeamingEnabled | Should be $true
             }
         }
+
+        #TODO: nvspinfo.exe binary must be in $here\helpers
     }
 }
 

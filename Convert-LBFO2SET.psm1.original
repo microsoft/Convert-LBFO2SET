@@ -55,22 +55,6 @@ Function Convert-LBFO2Set {
     #TODO: LBFOTeam param should accept either a LBFO bound vSwitch or actual LBFO Team
     $here = Split-Path -Parent (Get-Module -Name Convert-LBFO2SET).Path
 
-    if (-NOT $here)
-    {
-        Write-Error "Could not find the module path."
-        exit
-    }
-
-    # TODO: Move to Pester testing
-    # make sure nvspinfo.exe was successfully downloaded before continuing
-    $isNvsinfoFnd = Get-Item "$here\helpers\nvspinfo.exe" -ErrorAction SilentlyContinue
-
-    if (-NOT $isNvsinfoFnd)
-    {
-        Write-Error "Could not find nvspinfo.exe in the module path."
-        exit
-    }
-
     #region Data Collection
     $configData = @{ NetLBFOTeam = Get-NetLbfoTeam -Name $LBFOTeam -ErrorAction SilentlyContinue }
 
@@ -100,40 +84,43 @@ Function Convert-LBFO2Set {
             VMNetworkAdapter  = Get-VMNetworkAdapter -All | Where-Object SwitchName -EQ $configData.LBFOVMSwitch.Name -ErrorAction SilentlyContinue
         }
 
-        # Grabbing host vNICs (ManagementOS) attached to the LBFO vSwitch
-        $configData += @{ HostvNICs = @(Get-VMNetworkAdapter -ManagementOS -SwitchName $configData.LBFOVMSwitch.Name) }
+        <# Temporarily removing till we work through host vNIC migration plan
+        # Grabbing additional info for Host vNICs because their migration is a little more complicated.
+        foreach ($HostvNIC in $configData.VMNetworkAdapter | Where-Object VMName -eq $Null) {
+            $HostvNICNetAdapter = Get-NetAdapter | Where-Object DeviceID -eq $HostvNIC.DeviceId
+
+            $HostvNICs += @(
+                @{ $($HostvNIC.Name) = @{ HostvNICNetAdapter = $HostvNICNetAdapter }}
+            )
+        }
+        
+
+        $configData += @{ HostvNICs = $HostvNICs }
+        
+        Remove-Variable HostvNIC -ErrorAction SilentlyContinue\
+        #>
     }
     #endregion
 
     # EnableIOV should be $true as a best practice unless Hyper-V QoS is in use. Enabling IOV turns the vSwitch Bandwidth mode to 'None' so no legacy QoS
     Switch ($ConfigData.LBFOVMSwitch.BandwidthReservationMode) {
         {'Absolute' -or 'Weight'} {
-            If ($configData.VMNetworkAdapter.BandwidthSetting) 
-            { 
-                $IovEnabled = $false 
-            }
-            Else 
-            { 
-                $IovEnabled = $true 
-            }
+            If ($configData.VMNetworkAdapter.BandwidthSetting) { $IovEnabled = $false }
+            Else { $IovEnabled = $true }
         }
 
         'None' { $IovEnabled = $true }
-
-        default { $IovEnabled = $false }
     }
 
     #region Create new SET team
-    if ($AllowOutage -eq $true -and $configData.NetLBFOTeam.Members.Count -eq 1) 
-    {
+    if ($AllowOutage -eq $true -and $configData.NetLBFOTeam.Members.Count -eq 1) {
         $NetAdapterNames = $configData.NetLBFOTeam.Members
         $AdapterMigrationNeeded = $false
 
         # Only one pnIC - Destroy the LBFOTeam
         Remove-NetLbfoTeam -Name $configData.NetLBFOTeam.Name -Confirm:$false
     }
-    else 
-    {
+    else {
         $NetAdapterNames = $configData.NetLBFOTeam.Members[0]
         $AdapterMigrationNeeded = $true
 
@@ -151,12 +138,8 @@ Function Convert-LBFO2Set {
 
     $vSwitchExists = Get-VMSwitch -Name $SETTeam -ErrorAction SilentlyContinue
 
-    if (-not($vSwitchExists)) 
-    { 
-        New-VMSwitch @SETTeamParams 
-    }
-    else 
-    {
+    if (-not($vSwitchExists)) { New-VMSwitch @SETTeamParams }
+    Else {
         $VerbosePreference = 'Continue'
 
         Write-Verbose "Team named [$SETTeam] exists and will be used"
@@ -172,16 +155,87 @@ Function Convert-LBFO2Set {
     # TODO: Add vmNIC and Host vNIC to test cases.
     if ($vNICMigrationNeeded) { Connect-VMNetworkAdapter -VMNetworkAdapter $vmNICs -SwitchName $SETTeam -ErrorAction SilentlyContinue }
 
-    # migrate host vNIC(s)
-    Foreach ($HostvNIC in $configData.HostvNics)
-    {
-        Write-Verbose "Migrating host vNIC(s)."
+    <# Temporarily removing till we work through host vNIC migration plan
+    Foreach ($HostvNIC in ($configData.VMNetworkAdapter | Where VMName -eq $Null)) {
+        Write-Output "Original Name: $($HostvNIC.Name)"
+        Write-Output "New Name: $($HostvNIC.Name)-446f776e2057697468204c42464f"
 
-        Push-Location $isNvsinfoFnd.Directory
+        Add-VMNetworkAdapter -SwitchName $SETTeam -Name "$($HostvNIC.Name)-446f776e2057697468204c42464f" -ManagementOS
 
-        .\nvspinfo.exe -r "$($HostvNIC.Name)" "$SETTeam"
+        Remove-Variable HostvNICSettings -ErrorAction SilentlyContinue
+
+        # Setting host vNIC properties...Going for exact match; Best practices will be enabled later if switch is specified
+
+        # These settings could be null in which case they would fail the Set-VMNetworkAdapter command we're about to do; set only if needed
+        if ($HostvNIC.DeviceNaming  -ne $Null)      { $HostvNICSettings += @{ DeviceNaming       = $HostvNIC.DeviceNaming }}
+        if ($HostvNIC.PortMirroring -ne $Null)      { $HostvNICSettings += @{ PortMirroring      = $HostvNIC.PortMirroring }}
+        if ($HostvNIC.NumaAwarePlacement -ne $Null) { $HostvNICSettings += @{ NumaAwarePlacement = $HostvNIC.NumaAwarePlacement }}
         
-        Pop-Location
+        if ($HostvNIC.IovWeight -ne $Null) { $HostvNICSettings += @{ IovWeight = $HostvNIC.IovWeight }}
+        if ($HostvNIC.IovQueuePairsRequested -ne $Null) { $HostvNICSettings += @{ IovQueuePairsRequested = $HostvNIC.IovQueuePairsRequested }}
+        if ($HostvNIC.IovInterruptModeration -ne $Null) { $HostvNICSettings += @{ IovInterruptModeration = $HostvNIC.IovInterruptModeration }}
+
+        if ($HostvNIC.NotMonitoredInCluster -ne $Null) { $HostvNICSettings += @{ NotMonitoredInCluster = $HostvNIC.NotMonitoredInCluster }}
+        if ($HostvNIC.TestReplicaPoolName   -ne $Null) { $HostvNICSettings += @{ TestReplicaPoolName   = $HostvNIC.TestReplicaPoolName }}
+        if ($HostvNIC.TestReplicaSwitchName -ne $Null) { $HostvNICSettings += @{ TestReplicaSwitchName = $HostvNIC.TestReplicaSwitchName }}
+
+        # These were added in 1709 so 2016 systems may not have this
+        if ($HostvNIC.VrssMinQueuePairs -ne $Null) { $HostvNICSettings += @{ VrssMinQueuePairs = $HostvNIC.VrssMinQueuePairs }}
+        if ($HostvNIC.VrssMaxQueuePairs -ne $Null) { $HostvNICSettings += @{ VrssMaxQueuePairs = $HostvNIC.VrssMaxQueuePairs }}
+
+        if ($HostvNIC.VrssQueueSchedulingMode      -ne $Null) { $HostvNICSettings += @{ VrssQueueSchedulingMode      = $HostvNIC.VrssQueueSchedulingMode }}
+        if ($HostvNIC.VrssExcludePrimaryProcessor  -ne $Null) { $HostvNICSettings += @{ VrssExcludePrimaryProcessor  = $HostvNIC.VrssExcludePrimaryProcessor }}
+        if ($HostvNIC.VrssIndependentHostSpreading -ne $Null) { $HostvNICSettings += @{ VrssIndependentHostSpreading = $HostvNIC.VrssIndependentHostSpreading }}
+
+        # This one could be 'None' in which case restoring that setting won't work due to how the cmdlet works.
+        if ($HostvNIC.VrssVmbusChannelAffinityPolicy -ne 'None') { $HostvNICSettings += @{ VrssVmbusChannelAffinityPolicy = $HostvNIC.VrssVmbusChannelAffinityPolicy }}
+
+        $HostvNICSettings += @{
+            # Create vNIC with custom name to prevent conflicts with existing host vNIC
+            #TODO: This should only be migrated if AllowOutage is $true
+            Name         = "$($HostvNIC.Name)-446f776e2057697468204c42464f"
+            ManagementOS = $true
+            
+            DHCPGuard    = $HostvNIC.DHCPGuard
+            StormLimit   = $HostvNIC.StormLimit
+            RouterGuard  = $HostvNIC.RouterGuard
+            AllowTeaming = $HostvNIC.AllowTeaming
+
+            VmqWeight   = $HostvNIC.VmqWeight
+            VrssEnabled = $HostvNIC.VrssEnabled
+            VmmqEnabled = $HostvNIC.VmmqEnabled
+
+            VirtualSubnetId = $HostvNIC.VirtualSubnetId
+            IeeePriorityTag = $HostvNIC.IeeePriorityTag
+            MacAddressSpoofing = $HostvNIC.MacAddressSpoofing
+        }
+        
+        Set-VMNetworkAdapter @HostvNICSettings
+
+        #TODO: If static IP Addresses, remove old IP and add to new host vNIC; (only if allowoutage)
+        #TODO: Make sure to warn if host vNICs exist so that we can customer knows they're not done and don't destroy the team/switch
+        #TODO: Just create a test if they have host vNICs attached and fail if allowoutage is not true
+
+        If ($HostvNIC.IsolationSetting.IsolationMode -eq 'Vlan') {
+            Set-VMNetworkAdapterIsolation -ManagementOS -VMNetworkAdapterName "$($HostvNIC.Name)-446f776e2057697468204c42464f" `
+                -IsolationMode Vlan -DefaultIsolationID $HostvNIC.IsolationSetting.DefaultIsolationID
+        }
+
+        Switch ($HostvNIC.VlanSetting.OperationMode) {
+            'Trunk' {
+                Set-VMNetworkAdapterVlan -ManagementOS -VMNetworkAdapterName "$($HostvNIC.Name)-446f776e2057697468204c42464f" `
+                    -Trunk -NativeVlanId $HostvNIC.NativeVlanId -AllowedVlanIdList $HostvNIC.AllowedVlanId
+            }
+
+            'Access' {
+                Set-VMNetworkAdapterVlan -ManagementOS -VMNetworkAdapterName "$($HostvNIC.Name)-446f776e2057697468204c42464f" `
+                    -Access -VlanId $HostvNIC.VlanSetting.AccessVlanId
+            }
+        }
+
+        if (-not($HostvNIC.VlanSetting.OperationMode -eq 'Untagged')) {
+
+        }
     }
     #>
     #TODO: Add post test validation to make sure there are no more vmNICs attached
@@ -190,11 +244,7 @@ Function Convert-LBFO2Set {
 #region Fire and Brimstone
     $remainingAdapters = $configData.NetLBFOTeam.Members
 
-    if ($configData.LBFOVMSwitch) 
-    { 
-        Remove-VMSwitch -Name $configData.LBFOVMSwitch.Name -Force -ErrorAction SilentlyContinue 
-    }
-    
+    If ($configData.LBFOVMSwitch) { Remove-VMSwitch -Name $configData.LBFOVMSwitch.Name -Force -ErrorAction SilentlyContinue }
     Remove-NetLbfoTeam -Name $configData.NetLBFOTeam.Name -Confirm:$false -ErrorAction SilentlyContinue
 
     #TODO: May need to check that the switch and / or team actually were removed before moving on
@@ -202,7 +252,6 @@ Function Convert-LBFO2Set {
     Add-VMSwitchTeamMember -NetAdapterName $remainingAdapters -VMSwitchName $SETTeam
 
     Remove-Variable HostvNIC
-
     <# Temporarily removing till we work through host vNIC migration plan
     foreach ($HostvNIC in ($configData.HostvNICs)) {
         $NewNetAdapterName = $configData.HostvNICs.$($HostvNIC.Keys).HostvNICNetAdapter.Name
@@ -214,17 +263,15 @@ Function Convert-LBFO2Set {
 
     if ($EnableBestPractices) {
         $SETInterfaces = (Get-VMSwitchTeam -Name $SETTeam).NetAdapterInterfaceDescription
-        $SETAdapters = (Get-NetAdapter | Where-Object InterfaceDescription -in $SETInterfaces).Name
 
-        Foreach ($interface in $SETAdapters) {
+        Foreach ($interface in $SETInterfaces) {
             Reset-NetAdapterAdvancedProperty -Name $interface -ErrorAction SilentlyContinue `
                 -DisplayName 'NVGRE Encapsulated Task Offload', 'VXLAN Encapsulated Task Offload', 'IPV4 Checksum Offload',
                              'NetworkDirect Technology', 'Recv Segment Coalescing (IPv4)', 'Recv Segment Coalescing (IPv6)',
                              'Maximum number of RSS Processors', 'Maximum Number of RSS Queues', 'RSS Base Processor Number',
                              'RSS Load Balancing Profile', 'SR-IOV', 'TCP/UDP Checksum Offload (IPv4)', 'TCP/UDP Checksum Offload (IPv6)' 
 
-            
-            Set-NetAdapterAdvancedProperty -Name $interface -DisplayName 'Packet Direct' -RegistryValue 0 -ErrorAction SilentlyContinue            
+            Set-NetAdapterAdvancedProperty -Name $interface -DisplayName 'Packet Direct' -RegistryValue 0
             Set-NetAdapterAdvancedProperty -Name $interface -RegistryValue 1 -DisplayName 'Receive Side Scaling', 'Virtual Switch RSS', 'Virtual Machine Queues', 'NetworkDirect Functionality'
         }
 
@@ -249,7 +296,7 @@ Function Convert-LBFO2Set {
         }
 
         $SETSwitchUpdates += @{
-            Name = $SETTeam
+            Name = $configData
             DefaultQueueVrssEnabled = $true
             DefaultQueueVmmqEnabled = $true
             DefaultQueueVrssMinQueuePairs = 8
