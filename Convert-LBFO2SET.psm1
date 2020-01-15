@@ -248,16 +248,20 @@ Function Convert-LBFO2Set {
     {
         Write-Verbose "Migrating host vNIC(s)."
 
-        Push-Location $isNvsinfoFnd.Directory
-
-        .\nvspinfo.exe -r "$($HostvNIC.Name)" "$SETTeam" *> $null
+        $reconnStr = "$here\helpers\$nicReconnBin -r `"$($HostvNIC.Name)`" `"$SETTeam`""
+        $nicReconn = [Scriptblock]::Create($reconnStr)
         
-        Pop-Location
+        try 
+        {
+            Invoke-Command -ScriptBlock $nicReconn -ErrorAction Stop *> $null
+        }
+        catch 
+        {
+            Write-Error "Failed to migrate host vNIC(s)."   
+            exit
+        }        
     }
-    #>
-    
-    #[DONE]TODO: Add post test validation to make sure there are no more vmNICs attached
-    #[DONE]TODO: Add post test validation to make sure there are no more host vNICs attached
+
     # validation to make sure there are no more vmNICs attached
     $vmMigGood = Get-VMNetworkAdapter -All | Where-Object SwitchName -EQ $configData.LBFOVMSwitch.Name -ErrorAction SilentlyContinue
     if ($vmMigGood)

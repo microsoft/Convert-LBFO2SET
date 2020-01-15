@@ -44,7 +44,6 @@ Describe 'OSValidation' -Tag PreValidation {
             }
         }
 
-        #[DONE]TODO: nvspinfo.exe binary must be in $here\helpers
         $VmsBinary = Get-Item "$here\helpers\$nicReconnBin" -ErrorAction SilentlyContinue
         It "${env:ComputerName}`: Must have $nicReconnBin in $here\helpers." {
             $VmsBinary.Name | Should be $nicReconnBin
