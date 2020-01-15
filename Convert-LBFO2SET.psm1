@@ -38,6 +38,7 @@ Function Convert-LBFO2Set {
         More projects               : https://github.com/topics/msftnet
         Windows Networking Blog     : https://blogs.technet.microsoft.com/networking/
 #>
+    [CmdletBinding()]
     param (
         [parameter(Mandatory = $true)]
         [String] $LBFOTeam ,
@@ -52,7 +53,52 @@ Function Convert-LBFO2Set {
         [Switch] $EnableBestPractices
     )
 
-    #TODO: LBFOTeam param should accept either a LBFO bound vSwitch or actual LBFO Team
+    Write-Verbose "Collecting data and validating configuration."
+    #[DONE]TODO: LBFOTeam param should accept either a LBFO bound vSwitch or actual LBFO Team
+
+    # check whether $LBFOTeam is the vSwitch or the LBFO team name bound to a vSwitch
+    # if there is an LBFO team with the name we simply use that
+    $isLBFOTeam = Get-NetLbfoTeam -Name $LBFOTeam -ErrorAction SilentlyContinue
+    if (-NOT $isLBFOTeam)
+    {
+        # check to see whether this is a vSwitch
+        $isvSwitch = Get-VMSwitch $LBFOTeam -ErrorAction SilentlyContinue
+
+        if ($isvSwitch)
+        {
+            Write-Verbose "LBFOTeam is a vSwitch. Verifying that an LBFO team is attached."
+            ## a vSwitch was found. Now make sure there is an LBFO team attached.
+            # get the vSwitch adapter(s) based on the InterfaceDescription contained in the vSwitch object
+            $tmpAdapter = Get-NetAdapter | Where-Object InterfaceDescription -in $isvSwitch.NetAdapterInterfaceDescriptions
+
+            # compare to list of LBFO team adapters
+            $tmpTeam = Get-NetLbfoTeam | Where-Object { $_.Name -in $tmpAdapter.Name -or $_.Name -eq $tmpAdapter.Name }
+
+            if ($tmpTeam)
+            {
+                # we found the LBFO team attached to the vSwitch! Set that to $LBFOTeam. We'll rediscover the vSwitch later.
+                $LBFOTeam = $tmpTeam.Name
+            }
+            else 
+            {
+                Write-Error "An LBFO team associated with $LBFOTeam could not be detected."    
+            }
+        }
+        else 
+        {
+            Write-Error "Failed to find an LBFO team or vSwitch named $LBFOTeam`."
+            exit
+        }
+
+
+        Remove-Variable isLBFOTeam,isvSwitch,tmpAdapter,tmpTeam
+    }
+    else {
+        Remove-Variable isLBFOTeam
+    }
+    
+
+
     $here = Split-Path -Parent (Get-Module -Name Convert-LBFO2SET).Path
 
     if (-NOT $here)
@@ -61,15 +107,9 @@ Function Convert-LBFO2Set {
         exit
     }
 
-    # TODO: Move to Pester testing
+    # [DONE]TODO: Move to Pester testing
     # make sure nvspinfo.exe was successfully downloaded before continuing
-    $isNvsinfoFnd = Get-Item "$here\helpers\nvspinfo.exe" -ErrorAction SilentlyContinue
-
-    if (-NOT $isNvsinfoFnd)
-    {
-        Write-Error "Could not find nvspinfo.exe in the module path."
-        exit
-    }
+    
 
     #region Data Collection
     $configData = @{ NetLBFOTeam = Get-NetLbfoTeam -Name $LBFOTeam -ErrorAction SilentlyContinue }
@@ -124,6 +164,7 @@ Function Convert-LBFO2Set {
     }
 
     #region Create new SET team
+    #TODO: test this logic thuroughly...
     if ($AllowOutage -eq $true -and $configData.NetLBFOTeam.Members.Count -eq 1) 
     {
         $NetAdapterNames = $configData.NetLBFOTeam.Members
@@ -151,7 +192,7 @@ Function Convert-LBFO2Set {
 
     $vSwitchExists = Get-VMSwitch -Name $SETTeam -ErrorAction SilentlyContinue
 
-    if (-not($vSwitchExists)) 
+    if (-NOT $vSwitchExists) 
     { 
         New-VMSwitch @SETTeamParams 
     }
@@ -166,6 +207,8 @@ Function Convert-LBFO2Set {
 
     Remove-Variable SETTeamParams -ErrorAction SilentlyContinue
     #endregion
+
+
     $vmNICs = ($configData.VMNetworkAdapter | Where-Object VMName -ne $Null)
     $vNICMigrationNeeded = If ($vmNICs) { $true } Else { $false }
 
@@ -179,20 +222,28 @@ Function Convert-LBFO2Set {
 
         Push-Location $isNvsinfoFnd.Directory
 
-        .\nvspinfo.exe -r "$($HostvNIC.Name)" "$SETTeam"
+        .\nvspinfo.exe -r "$($HostvNIC.Name)" "$SETTeam" *> $null
         
         Pop-Location
     }
     #>
-    #TODO: Add post test validation to make sure there are no more vmNICs attached
-    #TODO: Add post test validation to make sure there are no more host vNICs attached
+    
+    #[DONE]TODO: Add post test validation to make sure there are no more vmNICs attached
+    #[DONE]TODO: Add post test validation to make sure there are no more host vNICs attached
+    # validation to make sure there are no more vmNICs attached
+    $vmMigGood = Get-VMNetworkAdapter -All | Where-Object SwitchName -EQ $configData.LBFOVMSwitch.Name -ErrorAction SilentlyContinue
+    if ($vmMigGood)
+    {
+        Write-Error "Critical vmNIC migration failure. The following virtual NICs were not migrated to the new SET switch:`n$($vmMigGood | ForEach-Object { "`n`t$($_.Name) [$(if ($_.VMName) {"$($_.VMName)"} else {"host"})] " })"
+        exit
+    }
 
 #region Fire and Brimstone
     $remainingAdapters = $configData.NetLBFOTeam.Members
 
     if ($configData.LBFOVMSwitch) 
     { 
-        Remove-VMSwitch -Name $configData.LBFOVMSwitch.Name -Force -ErrorAction SilentlyContinue 
+        Remove-VMSwitch -Name $configData.LBFOVMSwitch.Name -Force -ErrorAction SilentlyContinue | Out-Null
     }
     
     Remove-NetLbfoTeam -Name $configData.NetLBFOTeam.Name -Confirm:$false -ErrorAction SilentlyContinue

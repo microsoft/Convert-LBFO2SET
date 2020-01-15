@@ -13,21 +13,29 @@ Describe 'OSValidation' -Tag PreValidation {
             $HyperVInstallation | Should be 'Installed'
         }
 
-        It "${env:ComputerName} LBFO Team [$LBFOTeam] should already exist" {
+        It "${env:ComputerName} LBFO Team [$LBFOTeam] must already exist" {
             $configData.NetLBFOTeam | Should Not BeNullOrEmpty
         }
 
-        It "${env:ComputerName} Teaming mode for LBFO team [$LBFOTeam] should not be LACP" {
+        It "${env:ComputerName} Teaming mode for LBFO team [$LBFOTeam] must not be LACP" {
             $configData.NetLBFOTeam.TeamingMode | Should Not Be 'LACP'
         }
 
         If ($AllowOutage -eq $false) {
-            It "$LBFOTeam should have at least two adapters" {
+            It "${env:ComputerName} $LBFOTeam must have at least two adapters when -AllowOutage is set" {
                 $configData.NetLBFOTeam.Members.Count | Should BeGreaterThan 1
             }
         }
 
-        $vSwitchExists = Get-VMSwitch -Name $SETTeam -ErrorAction SilentlyContinue
+        # [DONE]TODO: LBFO team should be attached to a vSwitch
+        $vSwitch = Get-VMSwitch -ErrorAction SilentlyContinue
+        $netAdapter = Get-NetAdapter | Where-Object { $_.InterfaceDescription -in $vSwitch.NetAdapterInterfaceDescriptions -and $_.Name -eq $LBFOTeam }
+
+        It "${env:ComputerName} LBFO Team [$LBFOTeam] must be attached to a vSwitch" {
+            $netAdapter.Name | Should be $LBFOTeam
+        }
+
+        $vSwitchExists = $vSwitch | Where-Object Name -eq $SETTeam
 
         #TODO: Add to Test condition
         If ($vSwitchExists) {
@@ -36,7 +44,11 @@ Describe 'OSValidation' -Tag PreValidation {
             }
         }
 
-        #TODO: nvspinfo.exe binary must be in $here\helpers
+        #[DONE]TODO: nvspinfo.exe binary must be in $here\helpers
+        $VmsBinary = Get-Item "$here\helpers\nvspinfo.exe" -ErrorAction SilentlyContinue
+        It "${env:ComputerName} nvspinfo.exe must exist in $here\helpers." {
+            $VmsBinary.Name | Should be 'nvspinfo.exe'
+        }
     }
 }
 
