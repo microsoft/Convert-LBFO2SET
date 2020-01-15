@@ -54,8 +54,6 @@ Function Convert-LBFO2Set {
     )
 
     Write-Verbose "Collecting data and validating configuration."
-    #[DONE]TODO: LBFOTeam param should accept either a LBFO bound vSwitch or actual LBFO Team
-
     # check whether $LBFOTeam is the vSwitch or the LBFO team name bound to a vSwitch
     # if there is an LBFO team with the name we simply use that
     $isLBFOTeam = Get-NetLbfoTeam -Name $LBFOTeam -ErrorAction SilentlyContinue
@@ -98,7 +96,7 @@ Function Convert-LBFO2Set {
     }
     
 
-
+    # get the path to where the module is stored
     $here = Split-Path -Parent (Get-Module -Name Convert-LBFO2SET).Path
 
     if (-NOT $here)
@@ -107,9 +105,41 @@ Function Convert-LBFO2Set {
         exit
     }
 
-    # [DONE]TODO: Move to Pester testing
-    # make sure nvspinfo.exe was successfully downloaded before continuing
-    
+    # detect the version of Windows
+    $osMajVer = [System.Environment]::OSVersion.Version.Major
+    $osBldVer = [System.Environment]::OSVersion.Version.Build
+
+    switch ($osMajVer)
+    {
+        10
+        {
+            switch ($osBldVer)
+            {
+                14393
+                {
+                    $nicReconnBin = "nicReconnect1.exe"
+                }
+                
+                17763
+                {
+                    $nicReconnBin = "nicReconnect5.exe"
+                }
+
+                default
+                {
+                    Write-Error "This version of Windows is not yet certified for Convert-LBFO2SET."
+                    exit
+                }
+            }
+        }
+
+        default
+        {
+            Write-Error "A supported version of Windows was not detected."
+            exit
+        }
+    }
+
 
     #region Data Collection
     $configData = @{ NetLBFOTeam = Get-NetLbfoTeam -Name $LBFOTeam -ErrorAction SilentlyContinue }
@@ -168,7 +198,6 @@ Function Convert-LBFO2Set {
     if ($AllowOutage -eq $true -and $configData.NetLBFOTeam.Members.Count -eq 1) 
     {
         $NetAdapterNames = $configData.NetLBFOTeam.Members
-        $AdapterMigrationNeeded = $false
 
         # Only one pnIC - Destroy the LBFOTeam
         Remove-NetLbfoTeam -Name $configData.NetLBFOTeam.Name -Confirm:$false
@@ -176,7 +205,6 @@ Function Convert-LBFO2Set {
     else 
     {
         $NetAdapterNames = $configData.NetLBFOTeam.Members[0]
-        $AdapterMigrationNeeded = $true
 
         Remove-NetLbfoTeamMember -Name $configData.NetLBFOTeam.Members[0] -Team $configData.NetLBFOTeam.Name -Confirm:$False
     }
