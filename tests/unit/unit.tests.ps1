@@ -22,7 +22,7 @@ Describe 'OSValidation' -Tag PreValidation {
         }
 
         If ($AllowOutage -eq $false) {
-            It "${env:ComputerName} $LBFOTeam`: Must have at least two adapters when -AllowOutage is set" {
+            It "${env:ComputerName} $LBFOTeam`: Must have at least two adapters when -AllowOutage is not set" {
                 $configData.NetLBFOTeam.Members.Count | Should BeGreaterThan 1
             }
         }
