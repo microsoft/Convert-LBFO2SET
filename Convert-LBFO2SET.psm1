@@ -114,13 +114,11 @@ Function Convert-LBFO2Set {
         {
             switch ($osBldVer)
             {
-                14393
-                {
+                { $_ -ge 14393 -and $_ -lt 17763} {
                     $nicReconnBin = "nicReconnect1.exe"
                 }
                 
-                17763
-                {
+                { $_ -ge 17763 } {
                     $nicReconnBin = "nicReconnect5.exe"
                 }
 
