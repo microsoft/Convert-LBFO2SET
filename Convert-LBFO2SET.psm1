@@ -88,11 +88,10 @@ Function Convert-LBFO2Set {
             exit
         }
 
-
-        Remove-Variable isLBFOTeam,isvSwitch,tmpAdapter,tmpTeam
+        Remove-Variable isLBFOTeam,isvSwitch,tmpAdapter,tmpTeam -ErrorAction SilentlyContinue
     }
     else {
-        Remove-Variable isLBFOTeam
+        Remove-Variable isLBFOTeam -ErrorAction SilentlyContinue
     }
     
 
@@ -284,7 +283,7 @@ Function Convert-LBFO2Set {
 
     Add-VMSwitchTeamMember -NetAdapterName $remainingAdapters -VMSwitchName $SETTeam
 
-    Remove-Variable HostvNIC
+    Remove-Variable HostvNIC -ErrorAction SilentlyContinue
 
     <# Temporarily removing till we work through host vNIC migration plan
     foreach ($HostvNIC in ($configData.HostvNICs)) {
