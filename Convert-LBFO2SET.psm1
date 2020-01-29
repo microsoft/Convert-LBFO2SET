@@ -79,13 +79,12 @@ Function Convert-LBFO2Set {
             }
             else 
             {
-                Write-Error "An LBFO team associated with $LBFOTeam could not be detected."    
+                Throw "An LBFO team associated with $LBFOTeam could not be detected."    
             }
         }
         else 
         {
-            Write-Error "Failed to find an LBFO team or vSwitch named $LBFOTeam`."
-            exit
+            Throw "Failed to find an LBFO team or vSwitch named $LBFOTeam`."
         }
 
         Remove-Variable isLBFOTeam,isvSwitch,tmpAdapter,tmpTeam -ErrorAction SilentlyContinue
@@ -100,8 +99,7 @@ Function Convert-LBFO2Set {
 
     if (-NOT $here)
     {
-        Write-Error "Could not find the module path."
-        exit
+        throw "Could not find the module path."
     }
 
     # detect the version of Windows
@@ -114,26 +112,24 @@ Function Convert-LBFO2Set {
         {
             switch ($osBldVer)
             {
-                { $_ -ge 14393 -and $_ -lt 17763} {
+                14393 {
                     $nicReconnBin = "nicReconnect1.exe"
                 }
                 
-                { $_ -ge 17763 } {
+                17763 {
                     $nicReconnBin = "nicReconnect5.exe"
                 }
 
                 default
                 {
-                    Write-Error "This version of Windows is not yet certified for Convert-LBFO2SET."
-                    exit
+                    throw "This version of Windows is not yet certified for Convert-LBFO2SET."
                 }
             }
         }
 
         default
         {
-            Write-Error "A supported version of Windows was not detected."
-            exit
+            throw "A supported version of Windows was not detected."
         }
     }
 
@@ -254,8 +250,7 @@ Function Convert-LBFO2Set {
         }
         catch 
         {
-            Write-Error "Failed to migrate host vNIC(s)."   
-            exit
+            throw "Failed to migrate host vNIC $($HostvNIC.Name)."   
         }        
     }
 
@@ -263,8 +258,7 @@ Function Convert-LBFO2Set {
     $vmMigGood = Get-VMNetworkAdapter -All | Where-Object SwitchName -EQ $configData.LBFOVMSwitch.Name -ErrorAction SilentlyContinue
     if ($vmMigGood)
     {
-        Write-Error "Critical vmNIC migration failure. The following virtual NICs were not migrated to the new SET switch:`n$($vmMigGood | ForEach-Object { "`n`t$($_.Name) [$(if ($_.VMName) {"$($_.VMName)"} else {"host"})] " })"
-        exit
+        throw "Critical vmNIC migration failure. The following virtual NICs were not migrated to the new SET switch:`n$($vmMigGood | ForEach-Object { "`n`t$($_.Name) [$(if ($_.VMName) {"$($_.VMName)"} else {"host"})] " })"
     }
 
 #region Fire and Brimstone

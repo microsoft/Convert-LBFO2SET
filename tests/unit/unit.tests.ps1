@@ -1,10 +1,19 @@
 Describe 'OSValidation' -Tag PreValidation {
     Context HostOS {
         $NodeOS = Get-CimInstance -ClassName 'Win32_OperatingSystem'
+        
+        # detect the version of Windows
+        $osBldVer = [System.Environment]::OSVersion.Version.Build
 
         ### Verify the Host is sufficient version
         It "${env:ComputerName}`: Must be Windows Server 2016, or Server 2019" {
             $NodeOS.Caption | Should be ($NodeOS.Caption -like '*Windows Server 2016*' -or $NodeOS.Caption -like '*Windows Server 2019*')
+        }
+
+        It "${env:ComputerName}`: Must NOT be a SAC release" {
+            # 14393 defines Server 2016 RS1
+            # 17763 defines Server 2019 RS5
+            $osBldVer | Should -BeIn @(14393, 17763)
         }
 
         $HyperVInstallation = (Get-WindowsFeature -Name Hyper-V -ComputerName $env:ComputerName -ErrorAction SilentlyContinue).InstallState
