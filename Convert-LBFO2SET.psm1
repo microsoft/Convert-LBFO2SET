@@ -237,21 +237,8 @@ Function Convert-LBFO2Set {
     if ($vNICMigrationNeeded) { Connect-VMNetworkAdapter -VMNetworkAdapter $vmNICs -SwitchName $SETTeam -ErrorAction SilentlyContinue }
 
     # migrate host vNIC(s)
-    Foreach ($HostvNIC in $configData.HostvNics)
-    {
-        Write-Verbose "Migrating host vNIC(s)."
-
-        $reconnStr = "$here\helpers\$nicReconnBin -r `"$($HostvNIC.Name)`" `"$SETTeam`""
-        $nicReconn = [Scriptblock]::Create($reconnStr)
-        
-        try 
-        {
-            Invoke-Command -ScriptBlock $nicReconn -ErrorAction Stop *> $null
-        }
-        catch 
-        {
-            throw "Failed to migrate host vNIC $($HostvNIC.Name)."   
-        }        
+    Foreach ($HostvNIC in $configData.HostvNics) {
+        & "$($here)\helpers\$($nicReconnBin)" -r "$($HostvNIC.Name)" "$SETTeam" | Out-Null
     }
 
     # validation to make sure there are no more vmNICs attached
