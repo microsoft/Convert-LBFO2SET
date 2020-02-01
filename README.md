@@ -1,3 +1,6 @@
+[![Build status](https://ci.appveyor.com/api/projects/status/y6682ir5f5nj28in?svg=true)](https://ci.appveyor.com/project/MSFTCoreNet/convert-lbfo2set)
+[![downloads](https://img.shields.io/powershellgallery/dt/Convert-LBFO2SET.svg?label=downloads)](https://www.powershellgallery.com/packages/Convert-LBFO2SET)
+
 # Overview
 
 For more information, including how to use this tool, please see [the Wiki](https://github.com/microsoft/Convert-LBFO2SET/wiki)
