@@ -45,10 +45,10 @@ Function Convert-LBFO2Set {
         [String] $SETTeam ,
 
         [parameter(Mandatory = $False)]
-        [Switch] $AllowOutage ,
+        [Switch] $AllowOutage = $false,
 
         [parameter(Mandatory = $False)]
-        [Switch] $EnableBestPractices
+        [Switch] $EnableBestPractices = $false
     )
 
     Write-Verbose "Collecting data and validating configuration."

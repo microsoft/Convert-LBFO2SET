@@ -7,7 +7,7 @@ Describe "$($env:repoName)-Manifest" {
             $DataFile | Should Not BeNullOrEmpty
         }
 
-        It "[Test-ModuleManifest] - $($env:repoName).psd1 should pass the basic test" {
+        It "[Test-ModuleManifest] - $($env:repoName).psd1 should not be empty" {
             $TestModule | Should Not BeNullOrEmpty
         }
 
@@ -30,18 +30,26 @@ Describe "$($env:repoName)-Manifest" {
             It "The $_ module should be available in the PowerShell gallery" {
                 $module | Should not BeNullOrEmpty
             }
-
-            Remove-Variable -Name Module -ErrorAction SilentlyContinue
         }
     }
 
     Context ExportedContent {
         $testCommand = Get-Command Convert-LBFO2SET
 
+        It 'Should default the LBFOTeam mandatory param' {
+            Get-Command Convert-LBFO2SET | Should -HaveParameter LBFOTeam -Mandatory
+        }
+
+        It 'Should default the SETTeam param to $false' {
+            Get-Command Convert-LBFO2SET | Should -HaveParameter SETTeam -Mandatory
+        }
+
         It 'Should default the AllowOutage param to $false' {
             Get-Command Convert-LBFO2SET | Should -HaveParameter AllowOutage -DefaultValue $false
         }
 
-        #TODO: Should test that LBFOTeam and SETTeam params are mandatory
+        It 'Should default the EnableBestPractices param to $false' {
+            Get-Command Convert-LBFO2SET | Should -HaveParameter EnableBestPractices -DefaultValue $false
+        }
     }
 }
