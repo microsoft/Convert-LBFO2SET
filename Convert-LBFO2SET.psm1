@@ -7,8 +7,6 @@ Function Convert-LBFO2Set {
         This script will allow you to migrate a LBFO Team into a SET team.  It will also migrate a vSwitch (if added to the LBFO Team)
         To a new vSwitch on SET including the vNICs.  This enables you to migrate a host with active virtual machines.
 
-        More info about the virtue of SET and why LBFO is dying
-
     .PARAMETER LBFOTeam
         The name of the LBFO Team to be migrated
 
