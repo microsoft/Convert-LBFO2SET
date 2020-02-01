@@ -38,11 +38,11 @@ image:
 #    - The "secure:" value is the Appveyor encryption of the key
 #    - GitHub update occurs to ensure that the module version is incremented based on the build number
 
-#CoreNetBuilder Kz5VZnHxQlD/mHk0dlvpxTN1isiwW9A5fWhRdL7a1vcGwbVHFyj/x9wrIkqpAkcf
+#CoreNetBuilder
 
 environment:
   NuGetApiKey:
-    secure: 2PDPp81OMieduXyaMx/irMPpmXwR/+3ONYScSXUsGZTu10nXBzrI2MISwM4aL/aS
+    secure: Kz5VZnHxQlD/mHk0dlvpxTN1isiwW9A5fWhRdL7a1vcGwbVHFyj/x9wrIkqpAkcf
   GitHubKey:
     secure: qpQkQoAMAquwRIDJtJT9rD8JZTVlNxAfOFqUgrsbCJy6C8AY0jFHMGap18SxmH+F
   APPVEYOR_RDP_PASSWORD:
