@@ -1,3 +1,9 @@
+# Overview
+
+For more information, including how to use this tool, please see [the Wiki](https://github.com/microsoft/Convert-LBFO2SET/wiki)
+
+This tool helps you to migrate a LBFO Team into a SET team.  It will also migrate a vSwitch (if added to the LBFO Team)
+To a new vSwitch on SET including the host and guest vNICs.
 
 # Contributing
 
