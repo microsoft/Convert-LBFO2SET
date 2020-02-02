@@ -30,7 +30,7 @@ CompanyName = 'Microsoft'
 Copyright = '(c) 2020 Inc. All rights reserved.'
 
 # Description of the functionality provided by this module
-Description = 'Convert-LBFO2SET converts...'
+Description = 'Convert-LBFO2SET converts and LBFO team or vSwitch into a Switch Embedded Team'
 
 # Minimum version of the Windows PowerShell engine required by this module
 # PowerShellVersion = ''

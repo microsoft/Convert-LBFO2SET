@@ -1,11 +1,12 @@
 Function Convert-LBFO2Set {
 <#
     .SYNOPSIS
-        This is the synopsis
+        Virtual Switches attached to an LBFO team has been deprecated by Microsoft. Use this tool, to 
+        migrate your team to the alternative teaming solution, Switch Embedded Teaming (SET).
 
     .DESCRIPTION
         This script will allow you to migrate a LBFO Team into a SET team.  It will also migrate a vSwitch (if added to the LBFO Team)
-        To a new vSwitch on SET including the vNICs.  This enables you to migrate a host with active virtual machines.
+        To a new vSwitch on SET including the vNICs. This enables you to migrate a host with active virtual machines.
 
     .PARAMETER LBFOTeam
         The name of the LBFO Team to be migrated
@@ -22,13 +23,13 @@ Function Convert-LBFO2Set {
         existing settings from the LBFO team will be configured on SET
 
     .EXAMPLE
-        Convert-LBFO2Set TODO
+        Convert-LBFO2Set -LBFOTeam NameofLBFOTeam -SETTeam NewSETTeamName
 
     .EXAMPLE
         Convert-LBFO2Set TODO
 
     .NOTES
-        Author: Microsoft Core Networking team and the Networking Blackbelts
+        Author: Microsoft Edge OS Networking Team and Microsoft CSS
 
         Please file issues on GitHub @ GitHub.com/Microsoft/Convert-LBFO2SET
 
@@ -284,7 +285,7 @@ Function Convert-LBFO2Set {
 
             
             Set-NetAdapterAdvancedProperty -Name $interface -DisplayName 'Packet Direct' -RegistryValue 0 -ErrorAction SilentlyContinue            
-            Set-NetAdapterAdvancedProperty -Name $interface -RegistryValue 1 -DisplayName 'Receive Side Scaling', 'Virtual Switch RSS', 'Virtual Machine Queues', 'NetworkDirect Functionality'
+            Set-NetAdapterAdvancedProperty -Name $interface -RegistryValue 1 -DisplayName 'Receive Side Scaling', 'Virtual Switch RSS', 'Virtual Machine Queues', 'NetworkDirect Functionality' -ErrorAction SilentlyContinue
         }
 
         $NodeOSCaption = (Get-CimInstance -ClassName 'Win32_OperatingSystem').Caption
@@ -334,9 +335,7 @@ Function Convert-LBFO2Set {
         Set-VMSwitch @SETSwitchUpdates
         Set-VMSwitchTeam -Name $SETTeam -LoadBalancingAlgorithm HyperVPort
 
-        <# Temporarily removing till we work through host vNIC migration plan
         Set-VMNetworkAdapter @HostvNICUpdates
-        #>
         Set-VMNetworkAdapter @vmNICUpdates
 
         Remove-Variable SETSwitchUpdates, vmNICUpdates, HostvNICUpdates, NodeOSCaption -ErrorAction SilentlyContinue
