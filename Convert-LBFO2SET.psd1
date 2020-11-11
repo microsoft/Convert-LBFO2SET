@@ -51,7 +51,7 @@ Description = 'Convert-LBFO2SET converts and LBFO team or vSwitch into a Switch 
 # ProcessorArchitecture = ''
 
 # Modules that must be imported into the global environment prior to importing this module
-RequiredModules = @(@{ModuleName = 'Pester'; ModuleVersion = '4.8.1'; })
+RequiredModules = @(@{ModuleName = 'Pester'; RequiredVersion = '4.9.0'; })
 
 # Assemblies that must be loaded prior to importing this module
 # RequiredAssemblies = @()
