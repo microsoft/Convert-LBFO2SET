@@ -145,7 +145,7 @@ Function Convert-LBFO2Set {
         Write-Warning "`n`nPlease note: if the failure was due to LACP: `n`t - We will intentionally NOT convert this type of team as the new team will not be functional until the port-channel on the physical switch has been modified"
         Write-Warning "To continue with an LACP conversion, please break the port-channel on the physical switch and modify the LBFO team to Switch Independent (Set-NetLbfoTeam -TeamingMode SwitchIndependent)"
 
-        Break
+        throw
     }
 
     $configData += @{
