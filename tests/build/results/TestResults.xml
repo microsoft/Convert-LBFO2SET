@@ -1,32 +1,32 @@
 ﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
-<test-results xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="nunit_schema_2.5.xsd" name="Pester" total="9" errors="0" failures="0" not-run="0" inconclusive="0" ignored="0" skipped="0" invalid="0" date="2020-02-02" time="01:08:20">
+<test-results xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="nunit_schema_2.5.xsd" name="Pester" total="9" errors="0" failures="0" not-run="0" inconclusive="0" ignored="0" skipped="0" invalid="0" date="2020-11-11" time="18:53:59">
   <environment clr-version="4.0.30319.42000" user-domain="APPVYR-WIN" cwd="C:\projects\Convert-LBFO2SET" platform="Microsoft Windows Server 2016 Datacenter|C:\Windows|\Device\Harddisk0\Partition4" machine-name="APPVYR-WIN" nunit-version="2.5.8.0" os-version="10.0.14393" user="appveyor" />
   <culture-info current-culture="en-US" current-uiculture="en-US" />
-  <test-suite type="TestFixture" name="Pester" executed="True" result="Success" success="True" time="5.1381" asserts="0" description="Pester">
+  <test-suite type="TestFixture" name="Pester" executed="True" result="Success" success="True" time="8.0129" asserts="0" description="Pester">
     <results>
-      <test-suite type="TestFixture" name="C:\projects\Convert-LBFO2SET\tests\build\unit\unit.build.tests.ps1" executed="True" result="Success" success="True" time="5.1381" asserts="0" description="C:\projects\Convert-LBFO2SET\tests\build\unit\unit.build.tests.ps1">
+      <test-suite type="TestFixture" name="C:\projects\Convert-LBFO2SET\tests\build\unit\unit.build.tests.ps1" executed="True" result="Success" success="True" time="8.0129" asserts="0" description="C:\projects\Convert-LBFO2SET\tests\build\unit\unit.build.tests.ps1">
         <results>
-          <test-suite type="TestFixture" name="Convert-LBFO2SET-Manifest" executed="True" result="Success" success="True" time="4.9678" asserts="0" description="Convert-LBFO2SET-Manifest">
+          <test-suite type="TestFixture" name="Convert-LBFO2SET-Manifest" executed="True" result="Success" success="True" time="2.0497" asserts="0" description="Convert-LBFO2SET-Manifest">
             <results>
-              <test-suite type="TestFixture" name="Manifest-Validation" executed="True" result="Success" success="True" time="0.6748" asserts="0" description="Manifest-Validation">
+              <test-suite type="TestFixture" name="Convert-LBFO2SET-Manifest.Manifest-Validation" executed="True" result="Success" success="True" time="1.2497" asserts="0" description="Convert-LBFO2SET-Manifest.Manifest-Validation">
                 <results>
-                  <test-case description="[Import-PowerShellDataFile] - Convert-LBFO2SET.psd1 is a valid PowerShell Data File" name="Convert-LBFO2SET-Manifest.Manifest-Validation.[Import-PowerShellDataFile] - Convert-LBFO2SET.psd1 is a valid PowerShell Data File" time="0.227" asserts="0" success="True" result="Success" executed="True" />
-                  <test-case description="[Test-ModuleManifest] - Convert-LBFO2SET.psd1 should not be empty" name="Convert-LBFO2SET-Manifest.Manifest-Validation.[Test-ModuleManifest] - Convert-LBFO2SET.psd1 should not be empty" time="0.0067" asserts="0" success="True" result="Success" executed="True" />
-                  <test-case description="Should have the Convert-LBFO2SET function available" name="Convert-LBFO2SET-Manifest.Manifest-Validation.Should have the Convert-LBFO2SET function available" time="0.0063" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="[Import-PowerShellDataFile] - Convert-LBFO2SET.psd1 is a valid PowerShell Data File" name="Convert-LBFO2SET-Manifest.Manifest-Validation.[Import-PowerShellDataFile] - Convert-LBFO2SET.psd1 is a valid PowerShell Data File" time="0.8015" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="[Test-ModuleManifest] - Convert-LBFO2SET.psd1 should not be empty" name="Convert-LBFO2SET-Manifest.Manifest-Validation.[Test-ModuleManifest] - Convert-LBFO2SET.psd1 should not be empty" time="0.0079" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should have the Convert-LBFO2SET function available" name="Convert-LBFO2SET-Manifest.Manifest-Validation.Should have the Convert-LBFO2SET function available" time="0.0087" asserts="0" success="True" result="Success" executed="True" />
                 </results>
               </test-suite>
-              <test-suite type="TestFixture" name="Required Modules" executed="True" result="Success" success="True" time="3.5638" asserts="0" description="Required Modules">
+              <test-suite type="TestFixture" name="Convert-LBFO2SET-Manifest.Required Modules" executed="True" result="Success" success="True" time="1.2898" asserts="0" description="Convert-LBFO2SET-Manifest.Required Modules">
                 <results>
-                  <test-case description="Should contain the Pester Module" name="Convert-LBFO2SET-Manifest.Required Modules.Should contain the Pester Module" time="0.0982" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should contain the Pester Module" name="Convert-LBFO2SET-Manifest.Required Modules.Should contain the Pester Module" time="0.0092" asserts="0" success="True" result="Success" executed="True" />
                   <test-case description="The Pester module should be available in the PowerShell gallery" name="Convert-LBFO2SET-Manifest.Required Modules.The Pester module should be available in the PowerShell gallery" time="0.0068" asserts="0" success="True" result="Success" executed="True" />
                 </results>
               </test-suite>
-              <test-suite type="TestFixture" name="ExportedContent" executed="True" result="Success" success="True" time="0.3216" asserts="0" description="ExportedContent">
+              <test-suite type="TestFixture" name="Convert-LBFO2SET-Manifest.ExportedContent" executed="True" result="Success" success="True" time="1.9204" asserts="0" description="Convert-LBFO2SET-Manifest.ExportedContent">
                 <results>
-                  <test-case description="Should default the LBFOTeam mandatory param" name="Convert-LBFO2SET-Manifest.ExportedContent.Should default the LBFOTeam mandatory param" time="0.0832" asserts="0" success="True" result="Success" executed="True" />
-                  <test-case description="Should default the SETTeam param to $false" name="Convert-LBFO2SET-Manifest.ExportedContent.Should default the SETTeam param to $false" time="0.0034" asserts="0" success="True" result="Success" executed="True" />
-                  <test-case description="Should default the AllowOutage param to $false" name="Convert-LBFO2SET-Manifest.ExportedContent.Should default the AllowOutage param to $false" time="0.1604" asserts="0" success="True" result="Success" executed="True" />
-                  <test-case description="Should default the EnableBestPractices param to $false" name="Convert-LBFO2SET-Manifest.ExportedContent.Should default the EnableBestPractices param to $false" time="0.0375" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should default the LBFOTeam mandatory param" name="Convert-LBFO2SET-Manifest.ExportedContent.Should default the LBFOTeam mandatory param" time="0.2263" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should default the SETTeam param to $false" name="Convert-LBFO2SET-Manifest.ExportedContent.Should default the SETTeam param to $false" time="0.0073" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should default the AllowOutage param to $false" name="Convert-LBFO2SET-Manifest.ExportedContent.Should default the AllowOutage param to $false" time="0.3344" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should default the EnableBestPractices param to $false" name="Convert-LBFO2SET-Manifest.ExportedContent.Should default the EnableBestPractices param to $false" time="0.0351" asserts="0" success="True" result="Success" executed="True" />
                 </results>
               </test-suite>
             </results>
