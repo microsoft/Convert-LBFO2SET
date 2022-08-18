@@ -51,12 +51,12 @@ ForEach ($Module in $PowerShellModules) {
     }
     ElseIf ($Module -eq 'Pester') {
         Install-Module $Module -Scope AllUsers -Force -Repository PSGallery -AllowClobber -SkipPublisherCheck -RequiredVersion 5.3.3
-        Import-Module $Module -RequiredVersion 5.3.3
+        Import-Module $Module -RequiredVersion 5.3.3 -WarningAction SilentlyContinue
     }
     else {
         Install-Module $Module -Scope AllUsers -Force -Repository PSGallery -AllowClobber
-        Import-Module $Module
+        Import-Module $Module -WarningAction SilentlyContinue
     }
 
-    Import-Module $Module
+    Import-Module $Module -WarningAction SilentlyContinue
 }
