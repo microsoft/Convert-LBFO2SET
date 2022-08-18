@@ -4,18 +4,18 @@ Describe "$($env:repoName)-Manifest" {
 
     Context Manifest-Validation {
         It "[Import-PowerShellDataFile] - $($env:repoName).psd1 is a valid PowerShell Data File" {
-            $DataFile | Should -Not BeNullOrEmpty
+            $DataFile | Should -NotBeNullOrEmpty
         }
 
         It "[Test-ModuleManifest] - $($env:repoName).psd1 should not be empty" {
-            $TestModule | Should -Not BeNullOrEmpty
+            $TestModule | Should -NotBeNullOrEmpty
         }
 
         Import-Module .\$($env:repoName).psd1 -Force -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
         $command = Get-Command $($env:repoName) -ErrorAction SilentlyContinue
 
         It "Should have the $($env:repoName) function available" {
-            $command | Should -Not BeNullOrEmpty
+            $command | Should -NotBeNullOrEmpty
         }
     }
 
@@ -28,7 +28,7 @@ Describe "$($env:repoName)-Manifest" {
             }
 
             It "The $_ module should be available in the PowerShell gallery" {
-                $module | Should -Not BeNullOrEmpty
+                $module | Should -NotBeNullOrEmpty
             }
         }
     }
