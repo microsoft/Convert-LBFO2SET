@@ -2,6 +2,9 @@ Describe "$($env:repoName)-Manifest" {
     BeforeAll {
       $DataFile   = Import-PowerShellDataFile .\$($env:repoName).psd1 -ErrorAction Stop
       $TestModule = Test-ModuleManifest .\$($env:repoName).psd1 -ErrorAction Stop
+      
+      Import-Module .\$($env:repoName).psd1 -Force -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
+      $command = Get-Command $($env:repoName) -ErrorAction SilentlyContinue
     }
     Context Manifest-Validation {
         It "[Import-PowerShellDataFile] - $($env:repoName).psd1 is a valid PowerShell Data File" {
@@ -11,9 +14,6 @@ Describe "$($env:repoName)-Manifest" {
         It "[Test-ModuleManifest] - $($env:repoName).psd1 should not be empty" {
             $TestModule | Should -Not -BeNullOrEmpty
         }
-
-        Import-Module .\$($env:repoName).psd1 -Force -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
-        $command = Get-Command $($env:repoName) -ErrorAction SilentlyContinue
 
         It "Should have the $($env:repoName) function available" {
             $command | Should -Not -BeNullOrEmpty
