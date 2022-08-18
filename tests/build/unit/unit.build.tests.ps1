@@ -1,21 +1,22 @@
 Describe "$($env:repoName)-Manifest" {
-    $DataFile   = Import-PowerShellDataFile .\$($env:repoName).psd1 -ErrorAction Stop
-    $TestModule = Test-ModuleManifest       .\$($env:repoName).psd1 -ErrorAction Stop
-
+    BeforeAll {
+      $DataFile   = Import-PowerShellDataFile .\$($env:repoName).psd1 -ErrorAction Stop
+      $TestModule = Test-ModuleManifest .\$($env:repoName).psd1 -ErrorAction Stop
+    }
     Context Manifest-Validation {
         It "[Import-PowerShellDataFile] - $($env:repoName).psd1 is a valid PowerShell Data File" {
-            $DataFile | Should -NotBeNullOrEmpty
+            $DataFile | Should -Not -BeNullOrEmpty
         }
 
         It "[Test-ModuleManifest] - $($env:repoName).psd1 should not be empty" {
-            $TestModule | Should -NotBeNullOrEmpty
+            $TestModule | Should -Not -BeNullOrEmpty
         }
 
         Import-Module .\$($env:repoName).psd1 -Force -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
         $command = Get-Command $($env:repoName) -ErrorAction SilentlyContinue
 
         It "Should have the $($env:repoName) function available" {
-            $command | Should -NotBeNullOrEmpty
+            $command | Should -Not -BeNullOrEmpty
         }
     }
 
@@ -28,7 +29,7 @@ Describe "$($env:repoName)-Manifest" {
             }
 
             It "The $_ module should be available in the PowerShell gallery" {
-                $module | Should -NotBeNullOrEmpty
+                $module | Should -Not -BeNullOrEmpty
             }
         }
     }
