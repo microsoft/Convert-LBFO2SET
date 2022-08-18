@@ -5,6 +5,8 @@ Describe "$($env:repoName)-Manifest" {
       
       Import-Module .\$($env:repoName).psd1 -Force -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
       $command = Get-Command $($env:repoName) -ErrorAction SilentlyContinue
+	  
+	  $testCommand = Get-Command Convert-LBFO2SET
     }
     Context Manifest-Validation {
         It "[Import-PowerShellDataFile] - $($env:repoName).psd1 is a valid PowerShell Data File" {
@@ -35,8 +37,6 @@ Describe "$($env:repoName)-Manifest" {
     }
 
     Context ExportedContent {
-        $testCommand = Get-Command Convert-LBFO2SET
-
         It 'Should default the LBFOTeam mandatory param' {
             Get-Command Convert-LBFO2SET | Should -HaveParameter LBFOTeam -Mandatory
         }
