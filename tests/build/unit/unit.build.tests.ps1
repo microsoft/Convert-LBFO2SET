@@ -1,5 +1,5 @@
 Describe "$($env:repoName)-Manifest" {
-    Write-Host $(dir ..\..\..)
+    Write-Host $(dir .\)
     $DataFile   = Import-PowerShellDataFile ..\..\..\$($env:repoName).psd1 -ErrorAction SilentlyContinue
     $TestModule = Test-ModuleManifest       ..\..\..\$($env:repoName).psd1 -ErrorAction SilentlyContinue
 
