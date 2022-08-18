@@ -1,7 +1,6 @@
 Describe "$($env:repoName)-Manifest" {
-    Write-Host $(dir .\)
-    $DataFile   = Import-PowerShellDataFile ..\..\..\$($env:repoName).psd1 -ErrorAction SilentlyContinue
-    $TestModule = Test-ModuleManifest       ..\..\..\$($env:repoName).psd1 -ErrorAction SilentlyContinue
+    $DataFile   = Import-PowerShellDataFile .\$($env:repoName).psd1 -ErrorAction Stop
+    $TestModule = Test-ModuleManifest       .\$($env:repoName).psd1 -ErrorAction Stop
 
     Context Manifest-Validation {
         It "[Import-PowerShellDataFile] - $($env:repoName).psd1 is a valid PowerShell Data File" {
