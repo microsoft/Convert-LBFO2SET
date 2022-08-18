@@ -149,7 +149,7 @@ Function Convert-LBFO2Set
 	Switch ($ConfigData.LBFOVMSwitch.BandwidthReservationMode)
 	{
 		{ 'Absolute' -or 'Weight' } {
-			If ($configData.LBFOVMSwitch.IovEnabled)
+			If ($ConfigData.VMNetworkAdapter.BandwidthSetting)
 			{
 				$IovEnabled = $true
 			}
