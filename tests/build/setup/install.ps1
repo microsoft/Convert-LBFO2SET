@@ -5,6 +5,7 @@ Invoke-AppveyorInstallTask
 
 [string[]]$PowerShellModules = @("Pester", 'posh-git', 'psake', 'poshspec', 'PSScriptAnalyzer')
 
+Write-Host "Testing Module Manifest - .\$($env:RepoName).psd1"
 $ModuleManifest = Test-ModuleManifest .\$($env:RepoName).psd1 -ErrorAction SilentlyContinue
 $repoRequiredModules = $ModuleManifest.RequiredModules.Name
 $repoRequiredModules += $ModuleManifest.PrivateData.PSData.ExternalModuleDependencies
@@ -50,13 +51,19 @@ ForEach ($Module in $PowerShellModules) {
         }
     }
     ElseIf ($Module -eq 'Pester') {
-        Install-Module $Module -Scope AllUsers -Force -Repository PSGallery -AllowClobber -SkipPublisherCheck -RequiredVersion 4.9.0
-        Import-Module $Module -RequiredVersion 4.9.0
+        Write-Host "Installing Module - $Module (v5.3.3)"
+        Install-Module $Module -Scope AllUsers -Force -Repository PSGallery -AllowClobber -SkipPublisherCheck -RequiredVersion 5.3.3 | Out-Null
+        Write-Host "Importing Module - $Module (v5.3.3)"
+        Import-Module $Module -RequiredVersion 5.3.3 | Out-Null
+        continue
     }
     else {
-        Install-Module $Module -Scope AllUsers -Force -Repository PSGallery -AllowClobber
-        Import-Module $Module
+        Write-Host "Installing Module - $Module"
+        Install-Module $Module -Scope AllUsers -Force -Repository PSGallery -AllowClobber | Out-Null
+        Write-Host "Importing Module - $Module"
+        Import-Module $Module | Out-Null
+        continue
     }
-
+    Write-Host "Importing Module - $Module"
     Import-Module $Module
 }

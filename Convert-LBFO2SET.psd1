@@ -12,7 +12,7 @@
 RootModule = 'Convert-LBFO2SET.psm1'
 
 # Version number of this module.
-ModuleVersion = '2020.11.11.9'
+ModuleVersion = '2022.08.18.1'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -27,7 +27,7 @@ Author = 'Dan Cuomo'
 CompanyName = 'Microsoft'
 
 # Copyright statement for this module
-Copyright = '(c) 2020 Inc. All rights reserved.'
+Copyright = '(c) 2022 Inc. All rights reserved.'
 
 # Description of the functionality provided by this module
 Description = 'Convert-LBFO2SET converts and LBFO team or vSwitch into a Switch Embedded Team'
@@ -51,7 +51,7 @@ Description = 'Convert-LBFO2SET converts and LBFO team or vSwitch into a Switch 
 # ProcessorArchitecture = ''
 
 # Modules that must be imported into the global environment prior to importing this module
-RequiredModules = @(@{ModuleName = 'Pester'; RequiredVersion = '4.9.0'; })
+RequiredModules = @(@{ModuleName = 'Pester'; RequiredVersion = '5.3.3'; })
 
 # Assemblies that must be loaded prior to importing this module
 # RequiredAssemblies = @()

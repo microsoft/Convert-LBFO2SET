@@ -1,41 +1,40 @@
 Describe "$($env:repoName)-Manifest" {
-    $DataFile   = Import-PowerShellDataFile .\$($env:repoName).psd1 -ErrorAction SilentlyContinue
-    $TestModule = Test-ModuleManifest       .\$($env:repoName).psd1 -ErrorAction SilentlyContinue
-
+    BeforeAll {
+      $DataFile   = Import-PowerShellDataFile .\$($env:repoName).psd1 -ErrorAction Stop
+      $TestModule = Test-ModuleManifest .\$($env:repoName).psd1 -ErrorAction Stop
+      
+      Import-Module .\$($env:repoName).psd1 -Force -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
+      $command = Get-Command $($env:repoName) -ErrorAction SilentlyContinue
+	  
+	  $module = Find-Module -Name 'Pester' -ErrorAction SilentlyContinue
+	  
+	  $testCommand = Get-Command Convert-LBFO2SET
+    }
     Context Manifest-Validation {
         It "[Import-PowerShellDataFile] - $($env:repoName).psd1 is a valid PowerShell Data File" {
-            $DataFile | Should Not BeNullOrEmpty
+            $DataFile | Should -Not -BeNullOrEmpty
         }
 
         It "[Test-ModuleManifest] - $($env:repoName).psd1 should not be empty" {
-            $TestModule | Should Not BeNullOrEmpty
+            $TestModule | Should -Not -BeNullOrEmpty
         }
 
-        Import-Module .\$($env:repoName).psd1 -Force -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
-        $command = Get-Command $($env:repoName) -ErrorAction SilentlyContinue
-
         It "Should have the $($env:repoName) function available" {
-            $command | Should not BeNullOrEmpty
+            $command | Should -Not -BeNullOrEmpty
         }
     }
 
     Context "Required Modules" {
-        'Pester' | ForEach-Object {
-            $module = Find-Module -Name $_ -ErrorAction SilentlyContinue
-
-            It "Should contain the $_ Module" {
-                $_ -in ($TestModule).RequiredModules.Name | Should be $true
+            It "Should contain the Pester Module" {
+                'Pester' -in ($TestModule).RequiredModules.Name | Should -Be $true
             }
 
-            It "The $_ module should be available in the PowerShell gallery" {
-                $module | Should not BeNullOrEmpty
+            It "The Pester module should be available in the PowerShell gallery" {
+                $module | Should -Not -BeNullOrEmpty
             }
-        }
     }
 
     Context ExportedContent {
-        $testCommand = Get-Command Convert-LBFO2SET
-
         It 'Should default the LBFOTeam mandatory param' {
             Get-Command Convert-LBFO2SET | Should -HaveParameter LBFOTeam -Mandatory
         }
