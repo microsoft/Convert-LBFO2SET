@@ -58,5 +58,5 @@ ForEach ($Module in $PowerShellModules) {
         Import-Module $Module
     }
 
-    Import-Module $Module | Out-Null
+    Import-Module $Module
 }
