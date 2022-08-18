@@ -55,12 +55,14 @@ ForEach ($Module in $PowerShellModules) {
         Install-Module $Module -Scope AllUsers -Force -Repository PSGallery -AllowClobber -SkipPublisherCheck -RequiredVersion 5.3.3 | Out-Null
         Write-Host "Importing Module - $Module (v5.3.3)"
         Import-Module $Module -RequiredVersion 5.3.3 | Out-Null
+        continue
     }
     else {
         Write-Host "Installing Module - $Module"
         Install-Module $Module -Scope AllUsers -Force -Repository PSGallery -AllowClobber | Out-Null
         Write-Host "Importing Module - $Module"
         Import-Module $Module | Out-Null
+        continue
     }
     Write-Host "Importing Module - $Module"
     Import-Module $Module
