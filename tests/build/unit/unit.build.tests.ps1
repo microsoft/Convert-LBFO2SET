@@ -6,6 +6,8 @@ Describe "$($env:repoName)-Manifest" {
       Import-Module .\$($env:repoName).psd1 -Force -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
       $command = Get-Command $($env:repoName) -ErrorAction SilentlyContinue
 	  
+	  $module = Find-Module -Name 'Pester' -ErrorAction SilentlyContinue
+	  
 	  $testCommand = Get-Command Convert-LBFO2SET
     }
     Context Manifest-Validation {
@@ -23,17 +25,13 @@ Describe "$($env:repoName)-Manifest" {
     }
 
     Context "Required Modules" {
-        'Pester' | ForEach-Object {
-            $module = Find-Module -Name $_ -ErrorAction SilentlyContinue
-
-            It "Should contain the $_ Module" {
-                $_ -in ($TestModule).RequiredModules.Name | Should -Be $true
+            It "Should contain the Pester Module" {
+                'Pester' -in ($TestModule).RequiredModules.Name | Should -Be $true
             }
 
-            It "The $_ module should be available in the PowerShell gallery" {
+            It "The Pester module should be available in the PowerShell gallery" {
                 $module | Should -Not -BeNullOrEmpty
             }
-        }
     }
 
     Context ExportedContent {
