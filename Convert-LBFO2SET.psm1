@@ -1,3 +1,15 @@
+<#
+
+Changelog:
+
+29 Aug 2022
+   - Added Windows Server 2022+ support.
+   - Fixed an SCVMM compatibilty issue.
+   - 
+
+#>
+
+
 Function Convert-LBFO2Set
 {
     <#
@@ -38,6 +50,7 @@ Function Convert-LBFO2Set
             More projects               : https://github.com/topics/msftnet
             Windows Networking Blog     : https://blogs.technet.microsoft.com/networking/
     #>
+
 	[CmdletBinding()]
 	param (
 		[parameter(Mandatory = $true)]
@@ -49,6 +62,7 @@ Function Convert-LBFO2Set
 		[parameter(Mandatory = $False)]
 		[Switch]$EnableBestPractices = $false
 	)
+	
 	Write-Verbose "Collecting data and validating configuration."
 	# check whether $LBFOTeam is the vSwitch or the LBFO team name bound to a vSwitch
 	# if there is an LBFO team with the name we simply use that
@@ -100,10 +114,12 @@ Function Convert-LBFO2Set
 		{
 			switch ($osBldVer)
 			{
+				# Windows Server 2016
 				14393 {
 					$nicReconnBin = "nicReconnect1.exe"
 				}
-				17763 {
+				# Windows Server 2019+
+				{ $_ -ge 17763 } {
 					$nicReconnBin = "nicReconnect5.exe"
 				}
 				default
