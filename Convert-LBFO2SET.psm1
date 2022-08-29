@@ -149,7 +149,7 @@ Function Convert-LBFO2Set
 	Switch ($ConfigData.LBFOVMSwitch.BandwidthReservationMode)
 	{
 		{ 'Absolute' -or 'Weight' } {
-			If ($ConfigData.VMNetworkAdapter.BandwidthSetting)
+			If ($configData.LBFOVMSwitch.IovEnabled)
 			{
 				$IovEnabled = $true
 			}
@@ -199,8 +199,7 @@ Function Convert-LBFO2Set
 	Remove-Variable SETTeamParams -ErrorAction SilentlyContinue
 	#endregion
 	$vmNICs = ($configData.VMNetworkAdapter | Where-Object VMName -ne $Null)
-	$vNICMigrationNeeded = If ($vmNICs) { $true }
-	Else { $false }
+	$vNICMigrationNeeded = If ($vmNICs) { $true } else { $false }
 	# TODO: Add vmNIC and Host vNIC to test cases.
 	if ($vNICMigrationNeeded) { Connect-VMNetworkAdapter -VMNetworkAdapter $vmNICs -SwitchName $SETTeam -ErrorAction SilentlyContinue }
 	# migrate host vNIC(s)
