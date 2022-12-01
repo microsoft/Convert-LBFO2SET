@@ -12,7 +12,7 @@
 RootModule = 'Convert-LBFO2SET.psm1'
 
 # Version number of this module.
-ModuleVersion = '2022.8.29.35'
+ModuleVersion = '2022.12.1.36'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
